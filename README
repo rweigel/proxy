@@ -1,0 +1,18 @@
+# Java 1.6 (Port number is set in in jetty/jetty-8/etc/jetty.xml)
+cd jetty/jetty-8/; java -jar start.jar
+cd jetty/jetty-8/webapps/;mkdir proxy;ln -sF ../../../proxy.jsp .
+curl http://localhost:8890/proxy/proxy.jsp?http://aurora.gmu.edu
+curl -I http://localhost:8890/proxy/proxy.jsp?http://aurora.gmu.edu
+
+# Java 1.7 (Port number is set in in jetty/jetty-9/etc/jetty-http.xml)
+cd jetty/jetty-9/; java -jar start.jar
+cd jetty/jetty-9/webapps/;mkdir proxy;ln -sF ../../../proxy.jsp .
+curl http://localhost:8889/proxy/proxy.jsp?http://aurora.gmu.edu
+curl -I http://localhost:8889/proxy/proxy.jsp?http://aurora.gmu.edu
+
+# node.js
+# Install http://node.js/
+cd node;npm install
+cd node;node proxy.js 8888
+curl http://localhost:8888/proxy?url=http://aurora.gmu.edu/
+curl -I http://localhost:8888/proxy?url=http://aurora.gmu.edu/
