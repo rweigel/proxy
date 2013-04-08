@@ -1,5 +1,6 @@
 // For a full proxy solution, see https://github.com/nodejitsu/node-http-proxy
 var http = require('http');
+http.globalAgent.maxSockets = 100;  // Most Apache servers have this set at 100.
 var request = require("request");
 var express = require('express');
 var app = express();
@@ -46,8 +47,20 @@ app.get('/proxy', function(req0, res0){
 
 	parts = parsereq(req0);
 	var options = {host: parts.host, port: 80, path: parts.path,agent:false};
-
+	console.log(req0.method + " " + parts.host + parts.path);
 	var req = http.request(options, function(res) {
+		//res0.header("Access-Control-Expose-Headers","X-Content-Length");
+		//res0.header("Access-Control-Allow-Headers","Content-Length");
+		//console.log(res.headers["content-length"]);
+		// Browsers typically don't allow headers except Content-Type
+		// and Last-Modified to be extracted through the XHR object.
+		// So put the content length in the Content-Type header ....
+		// TODO: Only do this for XHR requests.  How to determine this?
+		// Adding this to .ajax request: headers: {"X-My-Headers": "Hello"}
+		// gives Request header field X-My-Headers is not allowed by Access-Control-Allow-Headers. 
+		// in Chrome
+		res0.header("Content-Type","Content-Length: " + res.headers["content-length"]);
+		//console.log(req0.headers);
 		res0.writeHead(res.statusCode, res.headers)
 		res.setEncoding('utf8');
 		res.on('data', function (chunk) {res0.write(chunk);});
