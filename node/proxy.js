@@ -25,18 +25,25 @@ app.configure(function() {
 });
 
 // Get port number from command line option
-var port = process.argv[2] || 8888;
+var port = process.argv[2] || 8002;
 
 function parsereq(req, res0) {
 
 	urlx = "";
-	// For case where url= is not specified.
+	// ?http://server/query?name=value&name=value
+	// ?server/query?name=value&name=value
 	for (var name in req.query) {
 	    var urlx = name + "=" + req.query[name] + "&";
 	}
-	urlx.replace(/\&$/,'');	
 	
-	urlx = req.query.url || req.body.url || urlx || res0.send("URL must be specified\n");
+	// ?url=http://server/query?name=value&name=value
+	// ?url=server/query?name=value&name=value
+	if (req.query.url === "") {res0.send("URL must be specified\n");return "";}
+	
+	// Remove trailing &
+	urlx.replace(/\&$/,'');	
+
+	urlx = req.query.url || urlx || res0.send("URL must be specified\n");
 	if (!urlx.match(/^http\:\/\//)) {urlx = "http://" + urlx;}
 	return url.parse(urlx);
 }
@@ -45,7 +52,9 @@ function parsereq(req, res0) {
 
 app.get('/proxy', function(req0, res0){
 
-	parts = parsereq(req0);
+	parts = parsereq(req0,res0);
+	if (parts === "") return;
+	
 	var options = {host: parts.host, port: 80, path: parts.path,agent:false};
 	console.log(req0.method + " " + parts.host + parts.path);
 	var req = http.request(options, function(res) {
@@ -61,12 +70,13 @@ app.get('/proxy', function(req0, res0){
 		// in Chrome
 		res0.header("Content-Type","Content-Length: " + res.headers["content-length"]);
 		//console.log(req0.headers);
-		res0.writeHead(res.statusCode, res.headers)
+		res0.writeHead(res.statusCode, res.headers);
+		if (req0.method === "HEAD") {res0.end();return;}
 		res.setEncoding('utf8');
 		res.on('data', function (chunk) {res0.write(chunk);});
 		res.on('end',function () {res0.end();});
-		req.on('error', function(e) {console.log('Problem with request: ' + e.message);});
-	});
+		req.on('error', function(e) {console.log('Problem with request: ' + e.message)});
+	}).on('error', function(e) {res0.send(404,"Problem with request: " + e.message)})
 
 	req.end();
 	
