@@ -54,9 +54,10 @@ app.get('/proxy', function(req0, res0){
 
 	parts = parsereq(req0,res0);
 	if (parts === "") return;
+	console.log(parts)
 	
-	var options = {host: parts.host, port: 80, path: parts.path,agent:false};
-	console.log(req0.method + " " + parts.host + parts.path);
+	var options = {host: parts.hostname, port: parts.port, path: parts.path,agent:false};
+	console.log(options);
 	var req = http.request(options, function(res) {
 		//res0.header("Access-Control-Expose-Headers","X-Content-Length");
 		//res0.header("Access-Control-Allow-Headers","Content-Length");
